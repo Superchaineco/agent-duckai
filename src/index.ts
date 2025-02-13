@@ -8,9 +8,9 @@ require('dotenv').config();
 var cron = require('node-cron');
 cron.schedule('*/10 * * * *', async () => {    
 
-    const responseJson = await suggestion(undefined) //process.env.API_KEY
+    const responseJson = await suggestion(process.env.API_KEY) //process.env.API_KEY
 
-    console.log("Agent decission");
+    console.log("Agent decided:");
     console.log(responseJson);
 
 });
@@ -6146,9 +6146,11 @@ const suggestion = async (apiKey:string | undefined ) => {
     }
 
 
-
-    const randomIndex = Math.floor(Math.random() * pools.length);
-    const chosenPool = pools[randomIndex];
+    const filteredPools = mockData.data.poolGetPools.filter((pool) =>
+        pool.poolTokens.some((token: { symbol: string }) => token.symbol === 'USDC')
+    )
+    const randomIndex = Math.floor(Math.random() * filteredPools.length);
+    const chosenPool = filteredPools[randomIndex];
 
     const suggestion = [{
         protocol: 'Balancer',
@@ -6161,7 +6163,7 @@ const suggestion = async (apiKey:string | undefined ) => {
     return JSON.stringify(suggestion);
 }
 
-const pools = mockData.data.poolGetPools;
+
 
 const app = express();
 const PORT = 3000;

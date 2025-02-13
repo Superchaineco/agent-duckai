@@ -1,5 +1,20 @@
 import { OpenAI } from "openai";
+import { P2PClient } from "@openpond/sdk";
 
+export const interactAgent = async ()=>{
+    try{       
+        //Ty to use P2P comms  https://docs.duckai.ai/documentation/agents/integrations.html#direct-p2p-integration
+        const p2p = new P2PClient ({address :process.env.AGENT_ADDRESS ?? "" });
+        p2p.onMessage((message)=>{
+           
+           console.log(message.content)
+    
+        })
+        await p2p.connect({ })
+    } catch(err){
+    }   
+
+}
 
 export const askAgent = async (liquidityPoolsJson: string) => {
 
@@ -7,8 +22,7 @@ export const askAgent = async (liquidityPoolsJson: string) => {
         apiKey: process.env.OPENAI_API_KEY,
     });
 
-
-    //DuckAI character specification based
+    //DuckAI character specification based  https://docs.duckai.ai/documentation/duck-framework/character-config.html
     const agentCharacter = {
         name: "Investment Agent",
         bio: `You are a REST web service receiving an array of liquidity pools in JSON format (example):
@@ -124,8 +138,6 @@ Here is an example format (not an instruction, just an illustration):
     };
 
 
-
-
     try {
 
         const chatCompletion = await openai.chat.completions.create({
@@ -147,22 +159,4 @@ Here is an example format (not an instruction, just an illustration):
     }
 }
 
-export const interactAgent = async ()=>{
-    try{
-        const { P2PClient } = await import("@openpond/sdk");
-
-       // const P2PClient = require('@openpond/sdk')
-        const p2p = new P2PClient ({address :"http://localhost:3001" });
-        p2p.onMessage((message)=>{
-           
-           console.log(message.content)
-    
-        })
-        await p2p.connect({ })
-    } catch(err){
-
-    }
-    
-
-}
 
