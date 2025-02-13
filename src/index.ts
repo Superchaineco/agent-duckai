@@ -6131,11 +6131,16 @@ const app = express();
 const PORT = 3000;
 
 app.get('/suggestion', async (req: Request, res: Response) => {
+
+
+    if (req.query.apiKey && req.query.apiKey == 'MyTestApiKEY') {
+        const jsonReponse = (await askAgent(JSON.stringify(mockData)))?.replace('```json', '').replace('```', '')
+        res.set('Content-Type', 'application/json')
+        return res.send(jsonReponse)
+    }
+
     const randomIndex = Math.floor(Math.random() * pools.length);
     const chosenPool = pools[randomIndex];
-
-    await askAgent(JSON.stringify(mockData))
-
 
     const suggestion = {
         protocol: 'Balancer',

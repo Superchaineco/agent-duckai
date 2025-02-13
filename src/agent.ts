@@ -136,10 +136,11 @@ Here is an example format (not an instruction, just an illustration):
                 role: "user",
                 content: liquidityPoolsJson,
             },],
-            model: 'gpt-4o',
+            model: 'gpt-4o-mini',
         }).withResponse();
 
-        console.log(chatCompletion)
+        console.log('The agent has decided:' + chatCompletion.data.choices[0].message.content)
+        return chatCompletion.data.choices[0].message.content;
     } catch (error) {
         console.error("Error al llamar a la API de OpenAI:", error);
     }
