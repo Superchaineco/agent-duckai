@@ -1,13 +1,14 @@
 import { OpenAI } from "openai";
 
 
-export async function askAgent(liquidityPoolsJson: string) {
+export const askAgent = async (liquidityPoolsJson: string) => {
 
     const openai = new OpenAI({
         apiKey: process.env.OPENAI_API_KEY,
     });
 
 
+    //DuckAI character specification based
     const agentCharacter = {
         name: "Investment Agent",
         bio: `You are a REST web service receiving an array of liquidity pools in JSON format (example):
@@ -142,7 +143,26 @@ Here is an example format (not an instruction, just an illustration):
         console.log('The agent has decided:' + chatCompletion.data.choices[0].message.content)
         return chatCompletion.data.choices[0].message.content;
     } catch (error) {
-        console.error("Error al llamar a la API de OpenAI:", error);
+        console.error("Error calling OpenAI:", error);
     }
+}
+
+export const interactAgent = async ()=>{
+    try{
+        const { P2PClient } = await import("@openpond/sdk");
+
+       // const P2PClient = require('@openpond/sdk')
+        const p2p = new P2PClient ({address :"http://localhost:3001" });
+        p2p.onMessage((message)=>{
+           
+           console.log(message.content)
+    
+        })
+        await p2p.connect({ })
+    } catch(err){
+
+    }
+    
+
 }
 

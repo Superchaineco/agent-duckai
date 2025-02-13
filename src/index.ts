@@ -1,9 +1,19 @@
 import express, { Request, Response } from 'express';
-import { askAgent } from './agent';
+import { askAgent, interactAgent } from './agent';
 import { liquidityPoolService } from './liquidityPoolService';
+
 
 require('dotenv').config();
 
+var cron = require('node-cron');
+cron.schedule('*/10 * * * *', async () => {    
+
+    const responseJson = await suggestion(undefined) //process.env.API_KEY
+
+    console.log("Agent decission");
+    console.log(responseJson);
+
+});
 const mockData = {
     data: {
         poolGetPools: [
@@ -6126,19 +6136,13 @@ const mockData = {
 };
 
 
-const pools = mockData.data.poolGetPools;
+const suggestion = async (apiKey:string | undefined ) => {
 
-const app = express();
-const PORT = 3000;
-
-app.get('/suggestion', async (req: Request, res: Response) => {
-
-
-    if (req.query.apiKey && req.query.apiKey == 'MyTestApiKEY') {
+    if (apiKey && apiKey == process.env.API_KEY) {
         const agentInput = await liquidityPoolService()
         const jsonReponse = (await askAgent(JSON.stringify(agentInput)))?.replace('```json', '').replace('```', '')
-        res.set('Content-Type', 'application/json')
-        return res.send(jsonReponse)
+        
+        return jsonReponse
     }
 
 
@@ -6146,15 +6150,39 @@ app.get('/suggestion', async (req: Request, res: Response) => {
     const randomIndex = Math.floor(Math.random() * pools.length);
     const chosenPool = pools[randomIndex];
 
-    const suggestion = {
+    const suggestion = [{
         protocol: 'Balancer',
         liquidityPoolAddress: chosenPool.address,
         amount: '100',
         token: chosenPool.poolTokens[0].symbol
-    };
+    }];
 
 
-    return res.json([suggestion]);
+    return JSON.stringify(suggestion);
+}
+
+const pools = mockData.data.poolGetPools;
+
+const app = express();
+const PORT = 3000;
+
+
+
+app.get('/connect', async (req: Request, res: Response) => {
+
+    await interactAgent()
+
+})
+
+
+
+app.get('/suggestion', async (req: Request, res: Response) => {
+    
+    res.set('Content-Type', 'application/json')
+    const responseJson = await suggestion(req.query.apiKey?.toString())   
+
+    res.send(responseJson);
+
 });
 
 // Iniciamos el servidor
