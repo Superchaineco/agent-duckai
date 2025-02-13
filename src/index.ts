@@ -1,5 +1,6 @@
 import express, { Request, Response } from 'express';
 import { askAgent } from './agent';
+import { liquidityPoolService } from './liquidityPoolService';
 
 require('dotenv').config();
 
@@ -6134,10 +6135,13 @@ app.get('/suggestion', async (req: Request, res: Response) => {
 
 
     if (req.query.apiKey && req.query.apiKey == 'MyTestApiKEY') {
-        const jsonReponse = (await askAgent(JSON.stringify(mockData)))?.replace('```json', '').replace('```', '')
+        const agentInput = await liquidityPoolService()
+        const jsonReponse = (await askAgent(JSON.stringify(agentInput)))?.replace('```json', '').replace('```', '')
         res.set('Content-Type', 'application/json')
         return res.send(jsonReponse)
     }
+
+
 
     const randomIndex = Math.floor(Math.random() * pools.length);
     const chosenPool = pools[randomIndex];
