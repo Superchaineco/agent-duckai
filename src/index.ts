@@ -1,6 +1,8 @@
 import express, { Request, Response } from 'express';
+import { askAgent } from './agent';
 
-// Aquí pegamos el JSON de pools completo en una variable (o podrías importarlo de un .json):
+require('dotenv').config();
+
 const mockData = {
     data: {
         poolGetPools: [
@@ -6128,9 +6130,11 @@ const pools = mockData.data.poolGetPools;
 const app = express();
 const PORT = 3000;
 
-app.get('/suggestion', (req: Request, res: Response) => {
+app.get('/suggestion', async (req: Request, res: Response) => {
     const randomIndex = Math.floor(Math.random() * pools.length);
     const chosenPool = pools[randomIndex];
+
+    await askAgent(JSON.stringify(mockData))
 
 
     const suggestion = {
