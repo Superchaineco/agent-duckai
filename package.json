@@ -1,0 +1,29 @@
+{
+  "name": "safe-agent-duckai",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "start": "npm run build && node dist/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sebaxor/safe-agent-duckai.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sebaxor/safe-agent-duckai/issues"
+  },
+  "homepage": "https://github.com/sebaxor/safe-agent-duckai#readme",
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "typescript": "^5.7.3"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
