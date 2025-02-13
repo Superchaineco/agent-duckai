@@ -6114,7 +6114,6 @@ const pools = mockData.data.poolGetPools;
 const app = express();
 const PORT = 3000;
 
-// Ruta de ejemplo que retorna una "sugerencia de inversión"
 app.get('/suggestion', (req: Request, res: Response) => {
     const randomIndex = Math.floor(Math.random() * pools.length);
     const chosenPool = pools[randomIndex];
