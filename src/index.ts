@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import { autonomusOperation, interactAgent, suggestion } from './agentService';
 import { getOperationCalldata } from './operationService';
-import { registerAddress, removeAddress } from './transactionsService';
+import { getTransactions, registerAddress, removeAddress } from './transactionsService';
 
 require('dotenv').config();
 const cron = require('node-cron');
@@ -13,9 +13,13 @@ const PORT = 3000;
 
 
 
+//DuckAI framework didnt' worked
+// app.get('/connect', async (req: Request, res: Response) => {
+//     await interactAgent();
+// });
 
-app.get('/connect', async (req: Request, res: Response) => {
-    await interactAgent();
+app.get('/transactions', async (req: Request, res: Response) => {
+    res.json(await getTransactions())
 });
 
 app.post('/co-pilot', async (req: Request, res: Response) => {

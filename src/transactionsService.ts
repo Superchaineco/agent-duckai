@@ -8,7 +8,9 @@ export const saveTransaction = async (transaction: { address: string, time: stri
     transactionList.push()
 }
 
-
+export const getTransactions =  async () => {
+    return transactionList
+}
 
 export const registerAddress = async (address: string) => {
 
