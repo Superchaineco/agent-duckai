@@ -19,7 +19,7 @@ app.get('/connect', async (req: Request, res: Response) => {
 });
 
 app.post('/co-pilot', async (req: Request, res: Response) => {
-
+    console.log('co-pilot')
 
     const suggestionResponse = JSON.parse((await suggestion())!)[0]
 
