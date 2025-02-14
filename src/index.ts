@@ -6614,7 +6614,7 @@ app.post('/mock', async (req: Request, res: Response) => {
     spender: '0x4473AbF77ADDC856B52CbE8a401BeB4f3BC0E8E2',
     tokenIn: '0x4200000000000000000000000000000000000042',
     tokenOut: '0xf246fd9800a36907602a02c7c8bf2b11c585218a',
-    routingStrategy: 'delegate',
+    routingStrategy: 'router',
   });
   res.send(response);
 
