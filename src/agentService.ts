@@ -246,6 +246,7 @@ const doOperation = async (address: string, liquidityPool: string, amount: numbe
             hash: tx,
         });
 
+        amount = Number(amount)
         saveTransaction({ address, action: "Deposit", amount: `${amount.toFixed(2)}`, hash: receipt.transactionHash, apr, time: getFormattedDateTime() })
         console.log(receipt);
     } catch (error) {
