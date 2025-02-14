@@ -37,7 +37,7 @@ app.post('/co-pilot', async (req: Request, res: Response) => {
         spender: address,
         tokenIn: '0x4200000000000000000000000000000000000042',
         tokenOut: '0xF246fd9800A36907602a02c7C8Bf2B11c585218A',
-        routingStrategy: 'router',
+        routingStrategy: 'delegate',
     });
     console.log(response);
     res.send({ tx: response.tx, suggestion: suggestionResponse.suggestion });
