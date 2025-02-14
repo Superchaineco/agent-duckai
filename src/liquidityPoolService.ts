@@ -11,7 +11,7 @@ export const liquidityPoolService = async () => {
             query: `
             query {
       poolGetPools(
-        where: {chainIn: OPTIMISM}
+        where: { chainIn: OPTIMISM, tokensIn: "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85" }
       ) {
         id
         address

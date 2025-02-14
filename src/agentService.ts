@@ -201,7 +201,7 @@ const doOperation = async (address: string, liquidityPool: string, amount: numbe
             fromAddress: address,
             receiver: address,
             spender: address,
-            tokenIn: '0x4200000000000000000000000000000000000042',
+            tokenIn: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85',
             tokenOut: liquidityPool,
             routingStrategy: 'delegate',
         });
