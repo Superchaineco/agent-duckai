@@ -11,9 +11,9 @@ interface RouteParams {
 }
 
 export async function getOperationCalldata(params: RouteParams): Promise<any> {
-  const { fromAddress, receiver, spender, amountIn, tokenIn, tokenOut } =
+  const { fromAddress, receiver, spender, amountIn, tokenIn, tokenOut, routingStrategy } =
     params;
-  const url = `https://api.enso.finance/api/v1/shortcuts/route?chainId=10&fromAddress=${fromAddress}&receiver=${receiver}&spender=${spender}&amountIn=${amountIn}&tokenIn=${tokenIn}&tokenOut=${tokenOut}&routingStrategy=delegate`;
+  const url = `https://api.enso.finance/api/v1/shortcuts/route?chainId=10&fromAddress=${fromAddress}&receiver=${receiver}&spender=${spender}&amountIn=${amountIn}&tokenIn=${tokenIn}&tokenOut=${tokenOut}&routingStrategy=${routingStrategy}`;
 
   try {
     const response = await axios.get(url, {

@@ -31,7 +31,7 @@ app.post('/co-pilot', async (req: Request, res: Response) => {
         spender: address,
         tokenIn: '0x4200000000000000000000000000000000000042',
         tokenOut: suggestionResponse.liquidityPoolAddress,
-        routingStrategy: 'delegate',
+        routingStrategy: 'router',
     });
     console.log(response);
     res.send({ tx: response.tx, suggestion: suggestionResponse.suggestion });
