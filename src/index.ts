@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import { autonomusOperation, interactAgent, suggestion } from './agentService';
 import { getOperationCalldata } from './operationService';
-import { registerAddress, removeAddress } from './transactionsService';
+import { getTransactions, registerAddress, removeAddress } from './transactionsService';
 
 require('dotenv').config();
 const cron = require('node-cron');
