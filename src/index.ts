@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import { autonomusOperation, interactAgent, suggestion } from './agentService';
 import { getOperationCalldata } from './operationService';
-import { getTransactions, registerAddress, removeAddress } from './transactionsService';
+import { registerAddress, removeAddress } from './transactionsService';
 
 require('dotenv').config();
 const cron = require('node-cron');
@@ -10,6 +10,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 const PORT = 3000;
+
+
 
 
 
@@ -34,7 +36,7 @@ app.post('/co-pilot', async (req: Request, res: Response) => {
         receiver: address,
         spender: address,
         tokenIn: '0x4200000000000000000000000000000000000042',
-        tokenOut: suggestionResponse.liquidityPoolAddress,
+        tokenOut: '0xF246fd9800A36907602a02c7C8Bf2B11c585218A',
         routingStrategy: 'router',
     });
     console.log(response);
