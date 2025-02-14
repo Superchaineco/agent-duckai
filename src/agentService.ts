@@ -124,7 +124,7 @@ Choose the best pool to invest in and respond.`,
 2) Respond ONLY with a JSON array containing exactly ONE object.
 3) That object MUST have the following structure:
    {
-     "suggestion": "I suggest you to invest in weETH/wETH in Balancer because this reasons..." //This field must have up to 250 characters and should say the symbol of the selected pool and say it's from Balancer
+     "suggestion": "I suggest you to invest in weETH/wETH in Balancer because this reasons..." //This field must have up to 500 characters and should say the symbol of the selected pool and say it's from Balancer. Give data and technical information for amateur crypto users who likes to recieve data
      "liquidityPoolAddress": "CHOSEN_DATA", // Extract this from the chosen pool
      "amount": "2.7",                       // This value between 2 and 3 randomly can have 2 decimals
      "apr": "3.5%"                      // This is the total APR of the pool formated in 2 decimal places and with the %
