@@ -21,7 +21,7 @@ const PORT = 3000;
 // });
 
 app.get('/transactions', async (req: Request, res: Response) => {
-    res.json(await getTransactions())
+    res.json(await getTransactions(req.query.address?.toString() ?? ''))
 });
 
 app.post('/co-pilot', async (req: Request, res: Response) => {

@@ -20,9 +20,9 @@ export const saveTransaction = async (transaction: Transaction): Promise<void> =
 };
 
 
-export const getTransactions = async (): Promise<Transaction[]> => {
+export const getTransactions = async (address: string): Promise<Transaction[]> => {
   const transactions = await redisClient.lRange(TRANSACTIONS_KEY, 0, -1);
-  return transactions.map(t => JSON.parse(t));
+  return (transactions.map(t => JSON.parse(t)) as Transaction[]).filter(x => x.address == address);
 };
 
 
