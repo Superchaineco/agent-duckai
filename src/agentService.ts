@@ -1,4 +1,13 @@
 import { OpenAI } from "openai";
+import { liquidityPoolService } from "./liquidityPoolService";
+import { getOperationCalldata } from "./operationService";
+import { privateKeyToAccount } from "viem/accounts";
+import { Address, createPublicClient, createWalletClient, http } from "viem";
+import { optimism } from 'viem/chains';
+import { addressList, saveTransaction } from "./transactionsService";
+
+
+
 
 
 export const interactAgent = async () => {
@@ -117,20 +126,19 @@ Choose the best pool to invest in and respond.`,
 3) That object MUST have the following structure:
    {
      "suggestion": "I suggest you to invest in this pool because this reasons..." //This field must have up to 250 characters
-     "protocol": "Balancer",                // Always "Balancer"
      "liquidityPoolAddress": "CHOSEN_DATA", // Extract this from the chosen pool
-     "amount": "3",                       // This value between 2 and 3 randomly
-     "token": "USDC"                      // Always "USDC"
+     "amount": "2.7",                       // This value between 2 and 3 randomly can have 2 decimals
+     "apr": "3.5%"                      // This is the total APR of the pool formated in 2 decimal places and with the %
    }
 
 Here is an example format (not an instruction, just an illustration):
 
 [
   {
-    "protocol": "Balancer",
+    "suggestion": "I suggest you to invest in this pool because..",
     "liquidityPoolAddress": "0x4d6461f181cf2b26a1cb4e3a070d63d0d31a5155",
-    "amount": "2",
-    "token": "USDC"
+    "amount": "2.2",
+    "apr": "3.2%" 
   }
 ]
 
@@ -163,3 +171,97 @@ Here is an example format (not an instruction, just an illustration):
 }
 
 
+export const suggestion = async () => {
+
+    const poolsData = await liquidityPoolService();
+    const agentInput = JSON.stringify(poolsData);
+    const jsonReponse = (await askAgent(agentInput))
+        ?.replace('```json', '')
+        .replace('```', '');
+
+    return jsonReponse;
+
+};
+
+
+export const autonomusOperation = async () => {
+    const agentSuggestion = JSON.parse((await suggestion())!)[0];
+    addressList.forEach(address => {
+        doOperation(address, agentSuggestion.liquidityPoolAddress, agentSuggestion.amount, agentSuggestion.apr)
+    });
+
+}
+
+const doOperation = async (address: string, liquidityPool: string, amount: number = 3, apr: string) => {
+
+    try {
+
+        const response = await getOperationCalldata({
+            amountIn: String(amount * (10 ** 16)),//'30000000000000000',
+            fromAddress: address,
+            receiver: address,
+            spender: address,
+            tokenIn: '0x4200000000000000000000000000000000000042',
+            tokenOut: liquidityPool,
+            routingStrategy: 'delegate',
+        });
+
+
+        const account = privateKeyToAccount(
+            process.env.PRIVATE_KEY as `0x${string}`
+        );
+
+        const client = createWalletClient({
+            account,
+            chain: optimism,
+            transport: http('https://rpc.ankr.com/optimism'),
+        });
+
+        const publicClient = createPublicClient({
+            chain: optimism,
+            transport: http('https://rpc.ankr.com/optimism'),
+        });
+
+        const tx = await client.writeContract({
+            address: '0xde8f89B6d11fc6894C98A37458c0149787F051AE' as Address,
+            abi: [
+                {
+                    inputs: [
+                        { internalType: 'address', name: 'account', type: 'address' },
+                        { internalType: 'address', name: 'to', type: 'address' },
+                        { internalType: 'bytes', name: 'data', type: 'bytes' },
+                        { internalType: 'uint256', name: 'value', type: 'uint256' },
+                    ],
+                    name: 'executeAutomatedOperation',
+                    outputs: [],
+                    stateMutability: 'nonpayable',
+                    type: 'function',
+                },
+            ],
+            functionName: 'executeAutomatedOperation',
+            args: [response.tx.from, response.tx.to, response.tx.data, response.tx.value],
+        });
+
+        const receipt = await publicClient.waitForTransactionReceipt({
+            hash: tx,
+        });
+
+        saveTransaction({ address, action: "Deposit", amount: `${amount.toFixed(2)}`, hash: receipt.transactionHash, apr, time: getFormattedDateTime() })
+        console.log(receipt);
+    } catch (error) {
+        console.log(error);
+
+    }
+}
+
+function getFormattedDateTime() {
+    const now = new Date();
+
+    const year = now.getFullYear();
+    const month = ('0' + (now.getMonth() + 1)).slice(-2);
+    const day = ('0' + now.getDate()).slice(-2);
+    const hours = ('0' + now.getHours()).slice(-2);
+    const minutes = ('0' + now.getMinutes()).slice(-2);
+
+    return `${year}-${month}-${day} ${hours}:${minutes}`;
+}
