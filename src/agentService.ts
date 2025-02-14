@@ -13,7 +13,7 @@ import { addressList, saveTransaction } from "./transactionsService";
 export const interactAgent = async () => {
     try {
         //Ty to use P2P comms  https://docs.duckai.ai/documentation/agents/integrations.html#direct-p2p-integration
-
+        //We tryed to implemente a multiagent communication using 2 characters but OpenPond SDK didnt worked
         const { P2PClient } = await import("@openpond/sdk")
         const p2p = new P2PClient({ address: process.env.AGENT_ADDRESS ?? "" });
         p2p.onMessage((message) => {
