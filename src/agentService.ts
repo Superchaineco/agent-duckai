@@ -197,7 +197,7 @@ const doOperation = async (
 ) => {
   try {
     const response = await getOperationCalldata({
-      amountIn: parseUnits('0.1', 6).toString(),
+      amountIn: parseUnits('0.01', 6).toString(),
       fromAddress: address,
       receiver: address,
       spender: address,
