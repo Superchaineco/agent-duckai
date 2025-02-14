@@ -5,10 +5,13 @@ import { liquidityPoolService } from './liquidityPoolService';
 
 require('dotenv').config();
 
+const addressList: string[] = []
+
 var cron = require('node-cron');
-cron.schedule('*/10 * * * *', async () => {    
+cron.schedule('*/10 * * * *', async () => {
 
     const responseJson = await suggestion(process.env.API_KEY) //process.env.API_KEY
+
 
     console.log("Agent decided:");
     console.log(responseJson);
@@ -6136,12 +6139,12 @@ const mockData = {
 };
 
 
-const suggestion = async (apiKey:string | undefined ) => {
+const suggestion = async (apiKey: string | undefined) => {
 
     if (apiKey && apiKey == process.env.API_KEY) {
         const agentInput = await liquidityPoolService()
         const jsonReponse = (await askAgent(JSON.stringify(agentInput)))?.replace('```json', '').replace('```', '')
-        
+
         return jsonReponse
     }
 
@@ -6155,7 +6158,7 @@ const suggestion = async (apiKey:string | undefined ) => {
     const suggestion = [{
         protocol: 'Balancer',
         liquidityPoolAddress: chosenPool.address,
-        amount: '100',
+        amount: String((randomIndex % 2) + 1),
         token: chosenPool.poolTokens[0].symbol
     }];
 
@@ -6166,6 +6169,7 @@ const suggestion = async (apiKey:string | undefined ) => {
 
 
 const app = express();
+app.use(express.json());
 const PORT = 3000;
 
 
@@ -6179,15 +6183,38 @@ app.get('/connect', async (req: Request, res: Response) => {
 
 
 app.get('/suggestion', async (req: Request, res: Response) => {
-    
+
     res.set('Content-Type', 'application/json')
-    const responseJson = await suggestion(req.query.apiKey?.toString())   
+    const responseJson = await suggestion(req.query.apiKey?.toString())
 
     res.send(responseJson);
 
 });
 
-// Iniciamos el servidor
+
+
+app.post('/register', async (req: Request, res: Response) => {
+
+    console.log(req.body)
+    const { address } = req.body
+    if (address && !addressList.includes(address))
+        addressList.push(address);
+    res.json(addressList);
+
+});
+
+app.post('/remove', async (req: Request, res: Response) => {
+
+    console.log(req.body)
+    const { address } = req.body
+    if (address && addressList.includes(address)) {
+        const index = addressList.indexOf(address);
+        if (index !== -1)
+            addressList.splice(index, 1);      
+    }
+    res.json(addressList);
+});
+
 app.listen(PORT, () => {
     console.log(`Mock server running on port ${PORT}`);
 });
