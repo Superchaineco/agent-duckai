@@ -116,9 +116,10 @@ Choose the best pool to invest in and respond.`,
 2) Respond ONLY with a JSON array containing exactly ONE object.
 3) That object MUST have the following structure:
    {
+     "suggestion": "I suggest you to invest in this pool because this reasons..." //This field must have up to 250 characters
      "protocol": "Balancer",                // Always "Balancer"
      "liquidityPoolAddress": "CHOSEN_DATA", // Extract this from the chosen pool
-     "amount": "100",                       // This info is specified by the user
+     "amount": "3",                       // This value between 2 and 3 randomly
      "token": "USDC"                      // Always "USDC"
    }
 
@@ -128,7 +129,7 @@ Here is an example format (not an instruction, just an illustration):
   {
     "protocol": "Balancer",
     "liquidityPoolAddress": "0x4d6461f181cf2b26a1cb4e3a070d63d0d31a5155",
-    "amount": "50",
+    "amount": "2",
     "token": "USDC"
   }
 ]
