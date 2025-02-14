@@ -1,41 +1,33 @@
-import { OpenAI } from "openai";
-import { liquidityPoolService } from "./liquidityPoolService";
-import { getOperationCalldata } from "./operationService";
-import { privateKeyToAccount } from "viem/accounts";
-import { Address, createPublicClient, createWalletClient, http } from "viem";
+import { OpenAI } from 'openai';
+import { liquidityPoolService } from './liquidityPoolService';
+import { getOperationCalldata } from './operationService';
+import { privateKeyToAccount } from 'viem/accounts';
+import { Address, createPublicClient, createWalletClient, http, parseUnits } from 'viem';
 import { optimism } from 'viem/chains';
-import { getAddresses, saveTransaction } from "./transactionsService";
-
-
-
+import { getAddresses, saveTransaction } from './transactionsService';
 
 export const interactAgent = async () => {
-    try {
-        //Ty to use P2P comms  https://docs.duckai.ai/documentation/agents/integrations.html#direct-p2p-integration
-        //We tryed to implemente a multiagent communication using 2 characters but OpenPond SDK didnt worked
-        const { P2PClient } = await import("@openpond/sdk")
-        const p2p = new P2PClient({ address: process.env.AGENT_ADDRESS ?? "" });
-        p2p.onMessage((message) => {
-
-            console.log(message.content)
-
-        })
-        await p2p.connect({})
-    } catch (err) {
-    }
-
-}
+  try {
+    //Ty to use P2P comms  https://docs.duckai.ai/documentation/agents/integrations.html#direct-p2p-integration
+    //We tryed to implemente a multiagent communication using 2 characters but OpenPond SDK didnt worked
+    const { P2PClient } = await import('@openpond/sdk');
+    const p2p = new P2PClient({ address: process.env.AGENT_ADDRESS ?? '' });
+    p2p.onMessage((message) => {
+      console.log(message.content);
+    });
+    await p2p.connect({});
+  } catch (err) {}
+};
 
 export const askAgent = async (liquidityPoolsJson: string) => {
+  const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
 
-    const openai = new OpenAI({
-        apiKey: process.env.OPENAI_API_KEY,
-    });
-
-    //DuckAI character specification based  https://docs.duckai.ai/documentation/duck-framework/character-config.html
-    const agentCharacter = {
-        name: "Investment Agent",
-        bio: `You are a REST web service receiving an array of liquidity pools in JSON format (example):
+  //DuckAI character specification based  https://docs.duckai.ai/documentation/duck-framework/character-config.html
+  const agentCharacter = {
+    name: 'Investment Agent',
+    bio: `You are a REST web service receiving an array of liquidity pools in JSON format (example):
 \`\`\`json
 [
  {
@@ -117,9 +109,10 @@ export const askAgent = async (liquidityPoolsJson: string) => {
 
 Choose the best pool to invest in and respond.`,
 
-        responseStyles: {
-            default: {
-                guidelines: [`Consider this guidelines
+    responseStyles: {
+      default: {
+        guidelines: [
+          `Consider this guidelines
 1) Choose exactly ONE liquidity pool to invest in.
 2) Respond ONLY with a JSON array containing exactly ONE object.
 3) That object MUST have the following structure:
@@ -141,129 +134,146 @@ Here is an example format (not an instruction, just an illustration):
   }
 ]
 
-**Do not provide any additional explanations or reasoning. Only return the JSON.**`],
-            },
-        },
+**Do not provide any additional explanations or reasoning. Only return the JSON.**`,
+        ],
+      },
+    },
+  };
 
-    };
+  try {
+    const chatCompletion = await openai.chat.completions
+      .create({
+        messages: [
+          {
+            role: 'system',
+            content: `You are a: ${agentCharacter.name} this is yout profile: ${agentCharacter.bio}. Always respond in this format: ${agentCharacter.responseStyles.default.guidelines}`,
+          },
+          {
+            role: 'user',
+            content: liquidityPoolsJson,
+          },
+        ],
+        model: 'gpt-4o-mini',
+      })
+      .withResponse();
 
-
-    try {
-
-        const chatCompletion = await openai.chat.completions.create({
-            messages: [{
-                role: "system",
-                content: `You are a: ${agentCharacter.name} this is yout profile: ${agentCharacter.bio}. Always respond in this format: ${agentCharacter.responseStyles.default.guidelines}`,
-            },
-            {
-                role: "user",
-                content: liquidityPoolsJson,
-            },],
-            model: 'gpt-4o-mini',
-        }).withResponse();
-
-        console.log('The agent has decided:' + chatCompletion.data.choices[0].message.content)
-        return chatCompletion.data.choices[0].message.content;
-    } catch (error) {
-        console.error("Error calling OpenAI:", error);
-    }
-}
-
-
-export const suggestion = async () => {
-
-    const poolsData = await liquidityPoolService();
-    const agentInput = JSON.stringify(poolsData);
-    const jsonReponse = (await askAgent(agentInput))
-        ?.replace('```json', '')
-        .replace('```', '');
-
-    return jsonReponse;
-
+    console.log(
+      'The agent has decided:' + chatCompletion.data.choices[0].message.content
+    );
+    return chatCompletion.data.choices[0].message.content;
+  } catch (error) {
+    console.error('Error calling OpenAI:', error);
+  }
 };
 
+export const suggestion = async () => {
+  const poolsData = await liquidityPoolService();
+  const agentInput = JSON.stringify(poolsData);
+  const jsonReponse = (await askAgent(agentInput))
+    ?.replace('```json', '')
+    .replace('```', '');
+
+  return jsonReponse;
+};
 
 export const autonomusOperation = async () => {
-    const agentSuggestion = JSON.parse((await suggestion())!)[0];
-    const addressList = await getAddresses()
-    addressList.forEach(address => {
-        doOperation(address, agentSuggestion.liquidityPoolAddress, agentSuggestion.amount, agentSuggestion.apr)
+  const agentSuggestion = JSON.parse((await suggestion())!)[0];
+  const addressList = await getAddresses();
+  addressList.forEach((address) => {
+    doOperation(
+      address,
+      agentSuggestion.liquidityPoolAddress,
+      agentSuggestion.amount,
+      agentSuggestion.apr
+    );
+  });
+};
+
+const doOperation = async (
+  address: string,
+  liquidityPool: string,
+  amount: number = 3,
+  apr: string
+) => {
+  try {
+    const response = await getOperationCalldata({
+      amountIn: parseUnits('0.1', 6).toString(),
+      fromAddress: address,
+      receiver: address,
+      spender: address,
+      tokenIn: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85',
+      tokenOut: liquidityPool,
+      routingStrategy: 'delegate',
     });
 
-}
+    const account = privateKeyToAccount(
+      process.env.PRIVATE_KEY as `0x${string}`
+    );
 
-const doOperation = async (address: string, liquidityPool: string, amount: number = 3, apr: string) => {
+    const client = createWalletClient({
+      account,
+      chain: optimism,
+      transport: http('https://rpc.ankr.com/optimism'),
+    });
 
-    try {
+    const publicClient = createPublicClient({
+      chain: optimism,
+      transport: http('https://rpc.ankr.com/optimism'),
+    });
 
-        const response = await getOperationCalldata({
-            amountIn: String(amount * (10 ** 16)),//'30000000000000000',
-            fromAddress: address,
-            receiver: address,
-            spender: address,
-            tokenIn: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85',
-            tokenOut: liquidityPool,
-            routingStrategy: 'delegate',
-        });
+    const tx = await client.writeContract({
+      address: '0xde8f89B6d11fc6894C98A37458c0149787F051AE' as Address,
+      abi: [
+        {
+          inputs: [
+            { internalType: 'address', name: 'account', type: 'address' },
+            { internalType: 'address', name: 'to', type: 'address' },
+            { internalType: 'bytes', name: 'data', type: 'bytes' },
+            { internalType: 'uint256', name: 'value', type: 'uint256' },
+          ],
+          name: 'executeAutomatedOperation',
+          outputs: [],
+          stateMutability: 'nonpayable',
+          type: 'function',
+        },
+      ],
+      functionName: 'executeAutomatedOperation',
+      args: [
+        response.tx.from,
+        response.tx.to,
+        response.tx.data,
+        response.tx.value,
+      ],
+    });
 
+    const receipt = await publicClient.waitForTransactionReceipt({
+      hash: tx,
+    });
 
-        const account = privateKeyToAccount(
-            process.env.PRIVATE_KEY as `0x${string}`
-        );
-
-        const client = createWalletClient({
-            account,
-            chain: optimism,
-            transport: http('https://rpc.ankr.com/optimism'),
-        });
-
-        const publicClient = createPublicClient({
-            chain: optimism,
-            transport: http('https://rpc.ankr.com/optimism'),
-        });
-
-        const tx = await client.writeContract({
-            address: '0xde8f89B6d11fc6894C98A37458c0149787F051AE' as Address,
-            abi: [
-                {
-                    inputs: [
-                        { internalType: 'address', name: 'account', type: 'address' },
-                        { internalType: 'address', name: 'to', type: 'address' },
-                        { internalType: 'bytes', name: 'data', type: 'bytes' },
-                        { internalType: 'uint256', name: 'value', type: 'uint256' },
-                    ],
-                    name: 'executeAutomatedOperation',
-                    outputs: [],
-                    stateMutability: 'nonpayable',
-                    type: 'function',
-                },
-            ],
-            functionName: 'executeAutomatedOperation',
-            args: [response.tx.from, response.tx.to, response.tx.data, response.tx.value],
-        });
-
-        const receipt = await publicClient.waitForTransactionReceipt({
-            hash: tx,
-        });
-
-        amount = Number(amount)
-        saveTransaction({ address, action: "Deposit", amount: `${amount.toFixed(2)}`, hash: receipt.transactionHash, apr, time: getFormattedDateTime() })
-        console.log(receipt);
-    } catch (error) {
-        console.log('Automatic transaction failed');
-        console.log(error);
-
-    }
-}
+    amount = Number(amount);
+    saveTransaction({
+      address,
+      action: 'Deposit',
+      amount: `${amount.toFixed(2)}`,
+      hash: receipt.transactionHash,
+      apr,
+      time: getFormattedDateTime(),
+    });
+    console.log(receipt);
+  } catch (error) {
+    console.log('Automatic transaction failed');
+    console.log(error);
+  }
+};
 
 function getFormattedDateTime() {
-    const now = new Date();
+  const now = new Date();
 
-    const year = now.getFullYear();
-    const month = ('0' + (now.getMonth() + 1)).slice(-2);
-    const day = ('0' + now.getDate()).slice(-2);
-    const hours = ('0' + now.getHours()).slice(-2);
-    const minutes = ('0' + now.getMinutes()).slice(-2);
+  const year = now.getFullYear();
+  const month = ('0' + (now.getMonth() + 1)).slice(-2);
+  const day = ('0' + now.getDate()).slice(-2);
+  const hours = ('0' + now.getHours()).slice(-2);
+  const minutes = ('0' + now.getMinutes()).slice(-2);
 
-    return `${year}-${month}-${day} ${hours}:${minutes}`;
+  return `${year}-${month}-${day} ${hours}:${minutes}`;
 }
