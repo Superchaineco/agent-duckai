@@ -60,7 +60,7 @@ app.post('/remove', async (req: Request, res: Response) => {
 
 
 
-cron.schedule('*/10 * * * *', async () => {
+cron.schedule(process.env.AUTOMATIC_TIME, async () => {
     autonomusOperation()
 });
 

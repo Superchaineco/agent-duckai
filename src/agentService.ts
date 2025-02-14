@@ -4,7 +4,7 @@ import { getOperationCalldata } from "./operationService";
 import { privateKeyToAccount } from "viem/accounts";
 import { Address, createPublicClient, createWalletClient, http } from "viem";
 import { optimism } from 'viem/chains';
-import { addressList, saveTransaction } from "./transactionsService";
+import { getAddresses, saveTransaction } from "./transactionsService";
 
 
 
@@ -185,6 +185,7 @@ export const suggestion = async () => {
 
 export const autonomusOperation = async () => {
     const agentSuggestion = JSON.parse((await suggestion())!)[0];
+    const addressList = await getAddresses()
     addressList.forEach(address => {
         doOperation(address, agentSuggestion.liquidityPoolAddress, agentSuggestion.amount, agentSuggestion.apr)
     });
