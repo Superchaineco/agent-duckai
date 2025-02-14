@@ -179,14 +179,18 @@ export const suggestion = async () => {
 export const autonomusOperation = async () => {
   const agentSuggestion = JSON.parse((await suggestion())!)[0];
   const addressList = await getAddresses();
-  addressList.forEach((address) => {
-    doOperation(
-      address,
-      agentSuggestion.liquidityPoolAddress,
-      agentSuggestion.amount,
-      agentSuggestion.apr
-    );
-  });
+  for (const address of addressList) {
+    try {
+      await doOperation(
+        address,
+        agentSuggestion.liquidityPoolAddress,
+        agentSuggestion.amount,
+        agentSuggestion.apr
+      );
+    } catch (error) {
+      console.error(`Error executing operation for address ${address}:`, error);
+    }
+  }
 };
 
 const doOperation = async (
