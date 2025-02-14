@@ -16,7 +16,7 @@ export const interactAgent = async () => {
       console.log(message.content);
     });
     await p2p.connect({});
-  } catch (err) {}
+  } catch (err) { }
 };
 
 export const askAgent = async (liquidityPoolsJson: string) => {
@@ -187,6 +187,7 @@ export const autonomusOperation = async () => {
         agentSuggestion.amount,
         agentSuggestion.apr
       );
+      await (new Promise(resolve => setTimeout(resolve, 2 * 1000)));
     } catch (error) {
       console.error(`Error executing operation for address ${address}:`, error);
     }
